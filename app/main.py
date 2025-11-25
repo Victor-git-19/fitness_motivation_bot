@@ -11,6 +11,7 @@ from app.config import settings
 from app.constants import (AUTHOR_CONTACT, DAY_DELAY_SECONDS,
                            MAIN_MENU_BUTTONS, PROGRAM_DAYS)
 
+
 logger = logging.getLogger(__name__)
 
 
