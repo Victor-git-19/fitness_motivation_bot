@@ -10,7 +10,7 @@ MAIN_MENU_BUTTONS = [
 ]
 
 AUTHOR_CONTACT = "@Alexandr_Brodyagin"
-DAY_DELAY_SECONDS = 24 * 60 * 60
+DAY_DELAY_SECONDS = 30
 
 PROGRAM_DAYS: List[Dict[str, str]] = [
     {
