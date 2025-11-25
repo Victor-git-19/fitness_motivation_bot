@@ -1,5 +1,10 @@
 # Бот «Путь к форме»
 
+![CI](https://github.com/Victor-git-19/fitness_motivation_bot/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![python-telegram-bot](https://img.shields.io/badge/PTB-22.x-26A5E4?logo=telegram&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+
 Async-бот на python-telegram-bot 20+ с главным меню, бесплатной 7-дневкой и оффером 30-дневной программы.
 
 ## Запуск

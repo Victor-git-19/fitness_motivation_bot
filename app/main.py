@@ -292,6 +292,10 @@ async def text_router(update: Update,
     user_text = update.message.text or ""
     lowered = user_text.lower().strip()
 
+    if lowered in {"/reset", "reset"}:
+        await reset_program(update, context)
+        return
+
     if lowered == MAIN_MENU_BUTTONS[0].lower():
         await start_program(update, context)
     elif lowered == MAIN_MENU_BUTTONS[1].lower():
