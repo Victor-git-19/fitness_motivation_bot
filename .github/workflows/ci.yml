@@ -70,7 +70,7 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          APP_DIR: "/opt/fitness-motivation-bot"
+          APP_DIR: "$HOME/fitness-motivation-bot"
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
@@ -79,7 +79,7 @@ jobs:
           envs: DOCKER_USERNAME,DOCKER_PASSWORD,BOT_TOKEN,APP_DIR
           script: |
             set -e
-            APP_DIR=${APP_DIR:-/opt/fitness-motivation-bot}
+            APP_DIR=${APP_DIR:-$HOME/fitness-motivation-bot}
             mkdir -p "$APP_DIR"
             IMAGE=${DOCKER_USERNAME}/fitness-motivation-bot:latest
             docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
