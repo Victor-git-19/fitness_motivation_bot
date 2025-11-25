@@ -70,6 +70,7 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          APP_DIR: "/opt/fitness-motivation-bot"
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
@@ -78,6 +79,7 @@ jobs:
           envs: DOCKER_USERNAME,DOCKER_PASSWORD,BOT_TOKEN
           script: |
             set -e
+            mkdir -p "$APP_DIR"
             IMAGE=${DOCKER_USERNAME}/fitness-motivation-bot:latest
             docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
             docker pull "$IMAGE"
@@ -85,6 +87,7 @@ jobs:
             docker run -d --restart unless-stopped \
               --name fitness-motivation-bot \
               -e telegram_token="${BOT_TOKEN}" \
+              -v "$APP_DIR":/app_data \
               "$IMAGE"
 
   notify:
