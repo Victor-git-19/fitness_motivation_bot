@@ -292,6 +292,10 @@ async def text_router(update: Update,
     user_text = update.message.text or ""
     lowered = user_text.lower().strip()
 
+    if user_text.startswith("/") and lowered not in {"/reset", "reset"}:
+        # Команды обрабатываются командными хендлерами; игнорируем здесь.
+        return
+
     if lowered in {"/reset", "reset"}:
         await reset_program(update, context)
         return
@@ -323,9 +327,7 @@ def run() -> None:
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("reset", reset_program))
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, text_router)
-    )
+    application.add_handler(MessageHandler(filters.TEXT, text_router))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
