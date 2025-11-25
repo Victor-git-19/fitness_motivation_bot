@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import re
 import logging
+from datetime import datetime, time, timedelta, timezone
 from typing import Dict, List
 
 from telegram import Bot, ReplyKeyboardMarkup, Update
@@ -13,6 +15,7 @@ from app.constants import (AUTHOR_CONTACT, DAY_DELAY_SECONDS,
 
 
 logger = logging.getLogger(__name__)
+DELIVERY_TIME_LOCAL = time(hour=9, minute=0)  # 09:00 локального времени пользователя
 
 
 def main_menu_markup() -> ReplyKeyboardMarkup:
@@ -54,6 +57,37 @@ def format_day_message(day_index: int, day: Dict[str, str]) -> str:
     ]
 
     return "\n".join(parts)
+
+
+def parse_local_time(text: str) -> tuple[int, int] | None:
+    """Парсит строку времени в формат ЧЧ:ММ (допускает разделители : или .)."""
+    match = re.match(r"^\s*(\d{1,2})[.:]?(\d{2})\s*$", text)
+    if not match:
+        return None
+    hours, minutes = int(match.group(1)), int(match.group(2))
+    if not (0 <= hours <= 23 and 0 <= minutes <= 59):
+        return None
+    return hours, minutes
+
+
+def compute_tz_offset_seconds(local_hours: int, local_minutes: int) -> int:
+    """Вычисляет смещение от UTC на основе текущего UTC и введённого локального времени."""
+    utc_now = datetime.now(timezone.utc)
+    utc_minutes = utc_now.hour * 60 + utc_now.minute
+    local_minutes_total = local_hours * 60 + local_minutes
+    diff_minutes = ((local_minutes_total - utc_minutes + 720) % 1440) - 720
+    return diff_minutes * 60
+
+
+def seconds_until_local_delivery(day_offset: int, tz_offset_seconds: int) -> int:
+    """Считает сколько секунд до доставки в выбранное локальное время."""
+    user_tz = timezone(timedelta(seconds=tz_offset_seconds))
+    now_utc = datetime.now(timezone.utc)
+    now_local = now_utc.astimezone(user_tz)
+    target_date = now_local.date() + timedelta(days=day_offset)
+    target_local = datetime.combine(target_date, DELIVERY_TIME_LOCAL, tzinfo=user_tz)
+    target_utc = target_local.astimezone(timezone.utc)
+    return max(int((target_utc - now_utc).total_seconds()), 0)
 
 
 async def send_day_program(
@@ -139,6 +173,18 @@ async def start_program(update: Update,
 
     chat_id = update.effective_chat.id
 
+    tz_offset_seconds = context.chat_data.get("tz_offset_seconds")
+    if tz_offset_seconds is None:
+        context.chat_data["awaiting_tz"] = True
+        context.chat_data["pending_start"] = True
+        await update.message.reply_text(
+            "Чтобы присылать утренние сообщения, напиши, сколько у тебя сейчас времени "
+            "в формате ЧЧ:ММ (например, 09:30).",
+            reply_markup=main_menu_markup(),
+        )
+        logger.info("Запросили локальное время для чата %s", chat_id)
+        return
+
     if context.chat_data.get("program_active"):
         await update.message.reply_text(
             "Программа уже запущена. Дожидайся ежедневных сообщений или дождись окончания, "
@@ -172,19 +218,21 @@ async def start_program(update: Update,
 
     jobs = []
     for day_index in range(1, len(PROGRAM_DAYS)):
+        delay_seconds = seconds_until_local_delivery(day_index, tz_offset_seconds)
         job = job_queue.run_once(
             send_day_job,
-            when=day_index * DAY_DELAY_SECONDS,
+            when=delay_seconds,
             data={"chat_id": chat_id, "day_index": day_index},
             chat_id=chat_id,
             name=f"program_{chat_id}_{day_index}",
         )
         jobs.append(job)
         logger.info(
-            "Запланирован день %s для чата %s через %s секунд",
+            "Запланирован день %s для чата %s через %s секунд (локаль UTC%+d)",
             day_index + 1,
             chat_id,
-            day_index * DAY_DELAY_SECONDS,
+            delay_seconds,
+            tz_offset_seconds // 3600,
         )
 
     context.chat_data["program_jobs"] = jobs
@@ -285,6 +333,27 @@ async def text_router(update: Update,
 
     user_text = update.message.text or ""
     lowered = user_text.lower().strip()
+
+    if context.chat_data.get("awaiting_tz"):
+        parsed = parse_local_time(lowered)
+        if not parsed:
+            await update.message.reply_text(
+                "Не понял время. Напиши в формате ЧЧ:ММ, например 09:30.",
+                reply_markup=main_menu_markup(),
+            )
+            return
+
+        tz_offset_seconds = compute_tz_offset_seconds(*parsed)
+        context.chat_data["tz_offset_seconds"] = tz_offset_seconds
+        context.chat_data["awaiting_tz"] = False
+
+        await update.message.reply_text(
+            "Супер! Настроили утренние отправки. Запускаю программу.",
+            reply_markup=main_menu_markup(),
+        )
+        if context.chat_data.pop("pending_start", False):
+            await start_program(update, context)
+        return
 
     if lowered == MAIN_MENU_BUTTONS[0].lower():
         await start_program(update, context)
