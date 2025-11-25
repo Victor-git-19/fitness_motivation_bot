@@ -4,7 +4,7 @@ Async-бот на python-telegram-bot 20+ с главным меню, беспл
 
 ## Запуск
 - Требуется Python 3.10+ (проект использует venv).
-- Установить зависимости: `pip install -r requiremens.txt` (включая extra для JobQueue)
+- Установить зависимости: `pip install -r requirements.txt` (включая extra для JobQueue)
 - Настроить `.env`:
   ```
   telegram_token=ВАШ_ТОКЕН
@@ -41,4 +41,4 @@ Async-бот на python-telegram-bot 20+ с главным меню, беспл
 ## Структура
 - `app/main.py` — вся логика бота (handlers, тексты, JobQueue).
 - `app/config.py` — загрузка настроек из `.env`.
-- `requiremens.txt` — зависимости.
+- `requirements.txt` — зависимости.
