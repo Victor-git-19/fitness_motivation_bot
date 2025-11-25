@@ -70,7 +70,6 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          APP_DIR: "$HOME/fitness-motivation-bot"
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
