@@ -116,25 +116,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def reset_program(update: Update,
                         context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Сбрасывает расписание и статус 7-дневки (ручной ресет)."""
-    if update.message is None or update.effective_chat is None:
-        return
-
-    chat_id = update.effective_chat.id
-
-    for job in context.chat_data.get("program_jobs", []):
-        job.schedule_removal()
-        logger.info("Снята задача %s при ручном сбросе в чате %s",
-                    job.name, chat_id)
-
-    context.chat_data["program_jobs"] = []
-    context.chat_data["program_active"] = False
-
-    await update.message.reply_text(
-        "Программа сброшена. Можно запускать заново.",
-        reply_markup=main_menu_markup(),
-    )
-    logger.info("Программа вручную сброшена в чате %s", chat_id)
+    """(Не используется)"""
+    return
 
 
 async def start_program(update: Update,
@@ -292,14 +275,6 @@ async def text_router(update: Update,
     user_text = update.message.text or ""
     lowered = user_text.lower().strip()
 
-    if user_text.startswith("/") and lowered not in {"/reset", "reset"}:
-        # Команды обрабатываются командными хендлерами; игнорируем здесь.
-        return
-
-    if lowered in {"/reset", "reset"}:
-        await reset_program(update, context)
-        return
-
     if lowered == MAIN_MENU_BUTTONS[0].lower():
         await start_program(update, context)
     elif lowered == MAIN_MENU_BUTTONS[1].lower():
@@ -326,7 +301,6 @@ def run() -> None:
     application = ApplicationBuilder().token(settings.telegram_token).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("reset", reset_program))
     application.add_handler(MessageHandler(filters.TEXT, text_router))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
