@@ -76,9 +76,10 @@ jobs:
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          envs: DOCKER_USERNAME,DOCKER_PASSWORD,BOT_TOKEN
+          envs: DOCKER_USERNAME,DOCKER_PASSWORD,BOT_TOKEN,APP_DIR
           script: |
             set -e
+            APP_DIR=${APP_DIR:-/opt/fitness-motivation-bot}
             mkdir -p "$APP_DIR"
             IMAGE=${DOCKER_USERNAME}/fitness-motivation-bot:latest
             docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
