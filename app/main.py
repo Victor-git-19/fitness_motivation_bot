@@ -4,20 +4,12 @@ import logging
 from typing import Dict, List
 
 from telegram import Bot, ReplyKeyboardMarkup, Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes,
-    MessageHandler,
-    filters,
-)
+from telegram.ext import (ApplicationBuilder, CommandHandler, ContextTypes,
+                          MessageHandler, filters)
 
 from app.config import settings
-from app.constants import (AUTHOR_CONTACT,
-                           DAY_DELAY_SECONDS,
-                           MAIN_MENU_BUTTONS, 
-                           PROGRAM_DAYS)
-
+from app.constants import (AUTHOR_CONTACT, DAY_DELAY_SECONDS,
+                           MAIN_MENU_BUTTONS, PROGRAM_DAYS)
 
 logger = logging.getLogger(__name__)
 
